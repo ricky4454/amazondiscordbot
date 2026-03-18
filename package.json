@@ -1,0 +1,14 @@
+{
+  "name": "amazondiscordbot",
+  "version": "1.0.0",
+  "description": "Discord bot that notifies a channel when Amazon products are back in stock.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
