@@ -86,6 +86,7 @@ function createMonitor({ notifier, config, logger = console }) {
     stop() {
       if (intervalId) {
         clearInterval(intervalId);
+        intervalId = undefined;
       }
     }
   };
@@ -113,7 +114,7 @@ async function main() {
   const shutdown = (signal) => {
     console.log(`${signal} received, shutting down.`);
     monitor.stop();
-    process.exit(0);
+    process.exitCode = 0;
   };
 
   process.once('SIGINT', () => shutdown('SIGINT'));
@@ -122,8 +123,8 @@ async function main() {
 
 if (require.main === module) {
   main().catch((error) => {
-    console.error(error);
-    process.exit(1);
+    console.error(error.message || error);
+    process.exitCode = 1;
   });
 }
 

@@ -145,6 +145,13 @@ npm test
 
 사용자가 제공한 `B0FY7XV4JY` 상품 링크를 기준으로 파서 회귀 테스트를 추가했습니다. 이 환경에서는 Amazon 직접 HTTP 요청이 프록시 정책상 `403 Forbidden`으로 차단되어, 실시간 네트워크 테스트는 제한되지만 페이지에 표시된 `Currently unavailable.` / `We don't know when or if this item will be back in stock.` 상태를 기준으로 테스트 케이스를 만들었습니다.
 
+## 문제 해결
+
+- `401 Unauthorized`: 거의 항상 `DISCORD_TOKEN` 문제입니다. `.env`에 공백이 들어갔거나, 잘못된 토큰을 넣었거나, 이미 재발급된 토큰일 수 있습니다. 이 경우 Discord Developer Portal에서 토큰을 다시 발급받아 `.env`를 갱신하세요.
+- `403 Forbidden`: 봇은 Discord에 접속했지만 해당 채널을 볼 권한 또는 메시지 전송 권한이 없습니다.
+- `404 Not Found`: `DISCORD_CHANNEL_ID`가 틀렸거나 봇이 그 서버에 초대되지 않았습니다.
+- Windows에서 실행 직후 비정상 종료가 보이면, 먼저 `npm run doctor -- --skip-amazon`으로 Discord 설정부터 확인하세요.
+
 ## 확장 아이디어
 
 - slash command로 감시 상품 추가/삭제

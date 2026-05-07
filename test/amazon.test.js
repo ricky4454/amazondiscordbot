@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const { extractAvailability, normalizeAmazonUrl } = require('../src/amazon');
 const { parseProducts } = require('../src/config');
 const { shouldSkipAmazon } = require('../src/doctor');
+const { buildDiscordErrorMessage } = require('../src/discordBot');
 
 test('extractAvailability marks in-stock pages correctly', () => {
   const result = extractAvailability(`
@@ -69,4 +70,17 @@ test('shouldSkipAmazon supports cli flag and env override', () => {
   assert.equal(shouldSkipAmazon(['--skip-amazon'], {}), true);
   assert.equal(shouldSkipAmazon([], { DOCTOR_SKIP_AMAZON: '1' }), true);
   assert.equal(shouldSkipAmazon([], {}), false);
+});
+
+test('buildDiscordErrorMessage explains unauthorized token errors clearly', () => {
+  const message = buildDiscordErrorMessage({
+    method: 'GET',
+    path: '/channels/123',
+    status: 401,
+    statusText: 'Unauthorized',
+    errorText: '{"message": "401: Unauthorized", "code": 0}'
+  });
+
+  assert.match(message, /Check DISCORD_TOKEN/i);
+  assert.match(message, /regenerate it/i);
 });
