@@ -1,19 +1,23 @@
 # Amazon Restock Discord Bot
 
-아마존 상품 페이지를 주기적으로 확인해서 **품절 → 재입고** 상태 전환이 감지되면 디스코드 채널로 알림을 보내는 봇입니다.
+아마존 상품 페이지를 주기적으로 확인해서 다음 두 가지를 디스코드로 알림 보내는 봇입니다.
+
+1. **기존 상품 재입고** (품절 → 재입고 전환)
+2. **브랜드 신규 상품 등록** (브랜드/검색 페이지에 처음 보이는 ASIN 감지)
 
 ## 기능
 
-- 여러 Amazon 상품 URL 동시 감시
+- 여러 Amazon 상품 URL 동시 재입고 감시
+- 여러 브랜드/검색 URL 동시 신규 상품 감시
 - 추적 파라미터가 붙은 Amazon URL을 `/dp/ASIN` 형태로 자동 정규화
-- Discord 텍스트 채널로 재입고 알림 전송
+- Discord 텍스트 채널로 재입고/신규상품 알림 전송
 - 시작 시 감시 대상/주기 안내 메시지 전송
 - Windows용 실행/설정 `.cmd` 스크립트 포함
 - 단위 테스트 포함
 
 ## 주의사항
 
-Amazon은 페이지 구조를 수시로 바꾸거나 봇 요청을 차단할 수 있습니다. 이 프로젝트는 HTML의 재고 관련 텍스트와 버튼 유무를 기반으로 동작하므로, 일부 상품에서는 셀렉터를 조정해야 할 수 있습니다.
+Amazon은 페이지 구조를 수시로 바꾸거나 봇 요청을 차단할 수 있습니다. 이 프로젝트는 HTML 파싱 기반이라 일부 페이지에서는 셀렉터/파서 조정이 필요할 수 있습니다.
 
 ## Windows에서 바로 쓰는 방법
 
@@ -31,43 +35,35 @@ Amazon은 페이지 구조를 수시로 바꾸거나 봇 요청을 차단할 수
 
 ### 3) Windows 초기 설정
 
-탐색기에서 아래 파일을 **더블클릭**하면 됩니다.
+탐색기에서 아래 파일을 **더블클릭**합니다.
 
 ```text
 windows\setup-windows.cmd
 ```
 
-이 스크립트는 아래 작업을 순서대로 수행합니다.
-
-1. Node.js 설치 여부 확인
-2. `.env`가 없으면 `.env.example`에서 복사
-3. 메모장으로 `.env` 열기
-4. `npm install` 실행
-5. `npm run doctor`로 Discord/Amazon 연결 점검
-6. Discord만 먼저 확인하고 싶으면 `npm run doctor -- --skip-amazon` 사용
-
-### 4) `.env` 입력 예시
+### 4) `.env` 입력 예시 (여러 링크 동시 감시)
 
 ```env
 DISCORD_TOKEN=여기에_디스코드_봇_토큰
 DISCORD_CHANNEL_ID=123456789012345678
-AMAZON_PRODUCTS_JSON=[{"name":"Persona 5 Royal Joker Figure","url":"https://www.amazon.com/dp/B0FY7XV4JY/?coliid=I1ICROY7VSIYFH&colid=468FUDFXB0QM&ref_=list_c_wl_lv_ov_lig_dp_it&th=1"}]
+AMAZON_PRODUCTS_JSON=[{"name":"PS5","url":"https://www.amazon.com/dp/B0CL61F39H"},{"name":"Nintendo Switch","url":"https://www.amazon.com/dp/B0BFJWCYTL"}]
+AMAZON_BRAND_WATCH_JSON=[{"name":"Bandai New Toys","url":"https://www.amazon.com/s?k=bandai&i=toys-and-games&s=date-desc-rank","maxItems":30},{"name":"LEGO New","url":"https://www.amazon.com/s?k=lego&i=toys-and-games&s=date-desc-rank","maxItems":20}]
 POLL_INTERVAL_MS=300000
 REQUEST_TIMEOUT_MS=15000
 USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36
 ```
 
-봇은 위 URL을 자동으로 `https://www.amazon.com/dp/B0FY7XV4JY` 형태로 정규화해서 사용합니다.
+- `AMAZON_PRODUCTS_JSON`: 재입고 감시 목록
+- `AMAZON_BRAND_WATCH_JSON`: 브랜드 신규상품 감시 목록
+- `maxItems`: listing 페이지에서 상위 몇 개까지 비교할지(기본 30)
 
 ### 5) 실행
-
-초기 설정이 끝났으면 아래 파일을 **더블클릭**해서 실행합니다.
 
 ```text
 windows\start-windows.cmd
 ```
 
-명령줄에서 직접 실행해도 됩니다.
+또는:
 
 ```bat
 npm start
@@ -75,54 +71,17 @@ npm start
 
 ### 6) 점검만 다시 하고 싶을 때
 
-```text
-windows\check-bot.cmd
-```
-
-또는:
-
 ```bat
 npm run doctor
 npm run doctor -- --skip-amazon
-```
-
-## 일반 빠른 시작
-
-### 1) 환경 변수 설정
-
-```bash
-cp .env.example .env
-```
-
-`AMAZON_PRODUCTS_JSON`은 다음처럼 설정합니다.
-
-```json
-[
-  {
-    "name": "Persona 5 Royal Joker Figure",
-    "url": "https://www.amazon.com/dp/B0FY7XV4JY/?coliid=I1ICROY7VSIYFH&colid=468FUDFXB0QM&ref_=list_c_wl_lv_ov_lig_dp_it&th=1"
-  }
-]
-```
-
-### 2) 설치 및 실행
-
-```bash
-npm install
-npm start
-```
-
-### 3) 테스트
-
-```bash
-npm test
 ```
 
 ## 환경 변수
 
 - `DISCORD_TOKEN`: Discord 봇 토큰
 - `DISCORD_CHANNEL_ID`: 알림을 받을 텍스트 채널 ID
-- `AMAZON_PRODUCTS_JSON`: 감시할 상품 목록 JSON 배열
+- `AMAZON_PRODUCTS_JSON`: 재입고 감시 상품 목록 JSON 배열 (필수)
+- `AMAZON_BRAND_WATCH_JSON`: 브랜드 신규상품 감시 목록 JSON 배열 (선택)
 - `POLL_INTERVAL_MS`: 확인 주기(ms), 기본값 `300000` (5분)
 - `REQUEST_TIMEOUT_MS`: Amazon 요청 타임아웃(ms), 기본값 `15000`
 - `USER_AGENT`: Amazon 요청 시 사용할 User-Agent 문자열
@@ -130,31 +89,14 @@ npm test
 ## 동작 방식
 
 1. 봇이 시작되면 Discord에 접속합니다.
-2. 지정한 채널에 감시 시작 메시지를 보냅니다.
-3. 각 상품 URL을 정규화한 뒤 페이지 재고 상태를 읽습니다.
-4. 직전 상태가 품절이고 현재 상태가 재입고면 알림을 보냅니다.
-
-## 제공되는 실행 파일
-
-- `windows/setup-windows.cmd`: 초기 설정 도우미
-- `windows/start-windows.cmd`: 실제 실행용
-- `windows/check-bot.cmd`: 설정/연결 점검용
-- `.env`는 Git에 커밋되지 않도록 `.gitignore`에 포함
-
-## 실제 링크 테스트 메모
-
-사용자가 제공한 `B0FY7XV4JY` 상품 링크를 기준으로 파서 회귀 테스트를 추가했습니다. 이 환경에서는 Amazon 직접 HTTP 요청이 프록시 정책상 `403 Forbidden`으로 차단되어, 실시간 네트워크 테스트는 제한되지만 페이지에 표시된 `Currently unavailable.` / `We don't know when or if this item will be back in stock.` 상태를 기준으로 테스트 케이스를 만들었습니다.
+2. 시작 메시지로 재입고 감시 개수/브랜드 감시 개수를 표시합니다.
+3. 재입고 감시는 각 상품 URL의 상태를 확인합니다.
+4. 브랜드 감시는 listing URL에서 ASIN 목록을 파싱합니다.
+5. 기존에 없던 ASIN이 새로 나타나면 신규상품 알림을 보냅니다.
 
 ## 문제 해결
 
-- `401 Unauthorized`: 거의 항상 `DISCORD_TOKEN` 문제입니다. `.env`에 공백이 들어갔거나, 잘못된 토큰을 넣었거나, 이미 재발급된 토큰일 수 있습니다. 이 경우 Discord Developer Portal에서 토큰을 다시 발급받아 `.env`를 갱신하세요.
-- `403 Forbidden`: 봇은 Discord에 접속했지만 해당 채널을 볼 권한 또는 메시지 전송 권한이 없습니다.
-- `404 Not Found`: `DISCORD_CHANNEL_ID`가 틀렸거나 봇이 그 서버에 초대되지 않았습니다.
-- Windows에서 실행 직후 비정상 종료가 보이면, 먼저 `npm run doctor -- --skip-amazon`으로 Discord 설정부터 확인하세요.
-
-## 확장 아이디어
-
-- slash command로 감시 상품 추가/삭제
-- SQLite로 마지막 상태 영속화
-- Keepa 또는 Amazon PA-API 연동으로 정확도 향상
-- 역할 멘션(`@here`, 특정 role) 옵션 추가
+- `401 Unauthorized`: `DISCORD_TOKEN` 문제 가능성이 큽니다.
+- `403 Forbidden`: 봇 권한(채널 보기/메시지 전송) 확인.
+- `404 Not Found`: `DISCORD_CHANNEL_ID` 확인.
+- 네트워크 제한 환경이면 `npm run doctor -- --skip-amazon`으로 Discord만 먼저 검증.

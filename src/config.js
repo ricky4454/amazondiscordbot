@@ -2,6 +2,7 @@ const { normalizeAmazonUrl } = require('./amazon');
 
 const DEFAULT_POLL_INTERVAL_MS = 5 * 60 * 1000;
 const DEFAULT_REQUEST_TIMEOUT_MS = 15 * 1000;
+const DEFAULT_BRAND_MAX_ITEMS = 30;
 
 function parseProducts(rawProducts) {
   if (!rawProducts) {
@@ -31,6 +32,44 @@ function parseProducts(rawProducts) {
     return {
       name: String(product.name),
       url: normalizeAmazonUrl(String(product.url))
+    };
+  });
+}
+
+function parseBrandWatches(rawWatches) {
+  if (!rawWatches) {
+    return [];
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(rawWatches);
+  } catch (error) {
+    throw new Error(`AMAZON_BRAND_WATCH_JSON must be valid JSON: ${error.message}`);
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error('AMAZON_BRAND_WATCH_JSON must be a JSON array.');
+  }
+
+  return parsed.map((watch, index) => {
+    if (!watch || typeof watch !== 'object') {
+      throw new Error(`Brand watch at index ${index} must be an object.`);
+    }
+
+    if (!watch.name || !watch.url) {
+      throw new Error(`Brand watch at index ${index} requires both name and url.`);
+    }
+
+    const maxItems = watch.maxItems == null ? DEFAULT_BRAND_MAX_ITEMS : Number.parseInt(String(watch.maxItems), 10);
+    if (Number.isNaN(maxItems) || maxItems <= 0) {
+      throw new Error(`Brand watch at index ${index} has invalid maxItems.`);
+    }
+
+    return {
+      name: String(watch.name),
+      url: String(watch.url),
+      maxItems
     };
   });
 }
@@ -69,11 +108,13 @@ function loadConfig() {
     userAgent:
       process.env.USER_AGENT ||
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
-    products: parseProducts(process.env.AMAZON_PRODUCTS_JSON)
+    products: parseProducts(process.env.AMAZON_PRODUCTS_JSON),
+    brandWatches: parseBrandWatches(process.env.AMAZON_BRAND_WATCH_JSON)
   };
 }
 
 module.exports = {
   loadConfig,
+  parseBrandWatches,
   parseProducts
 };

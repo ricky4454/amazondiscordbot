@@ -1,8 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { extractAvailability, normalizeAmazonUrl } = require('../src/amazon');
-const { parseProducts } = require('../src/config');
+const { extractAvailability, extractListingProducts, normalizeAmazonUrl } = require('../src/amazon');
+const { parseBrandWatches, parseProducts } = require('../src/config');
 const { shouldSkipAmazon } = require('../src/doctor');
 const { buildDiscordErrorMessage } = require('../src/discordBot');
 
@@ -48,6 +48,17 @@ test('extractAvailability matches the provided Amazon product page state', () =>
   assert.match(result.availabilityText, /back in stock/i);
 });
 
+test('extractListingProducts parses listing links and deduplicates ASINs', () => {
+  const items = extractListingProducts(`
+    <a href="/dp/B0AAAAAA11">Item 1</a>
+    <a href="/dp/B0AAAAAA11?ref_=dup">Item 1 duplicate</a>
+    <a href="https://www.amazon.com/gp/product/B0BBBBBB22">Item 2</a>
+  `, 30);
+
+  assert.deepEqual(items.map((item) => item.asin), ['B0AAAAAA11', 'B0BBBBBB22']);
+  assert.equal(items[0].url, 'https://www.amazon.com/dp/B0AAAAAA11');
+});
+
 test('normalizeAmazonUrl strips query parameters down to canonical dp url', () => {
   assert.equal(
     normalizeAmazonUrl('https://www.amazon.com/dp/B0FY7XV4JY/?coliid=I1ICROY7VSIYFH&colid=468FUDFXB0QM&ref_=list_c_wl_lv_ov_lig_dp_it&th=1'),
@@ -59,6 +70,15 @@ test('parseProducts validates JSON arrays and normalizes URLs', () => {
   assert.deepEqual(
     parseProducts('[{"name":"Item","url":"https://www.amazon.com/dp/B0FY7XV4JY/?ref_=abc"}]'),
     [{ name: 'Item', url: 'https://www.amazon.com/dp/B0FY7XV4JY' }]
+  );
+});
+
+test('parseBrandWatches supports empty and valid arrays', () => {
+  assert.deepEqual(parseBrandWatches(undefined), []);
+
+  assert.deepEqual(
+    parseBrandWatches('[{"name":"Bandai","url":"https://www.amazon.com/s?k=bandai","maxItems":20}]'),
+    [{ name: 'Bandai', url: 'https://www.amazon.com/s?k=bandai', maxItems: 20 }]
   );
 });
 

@@ -1,4 +1,4 @@
-const { fetchProductAvailability } = require('./amazon');
+const { fetchBrandListing, fetchProductAvailability } = require('./amazon');
 const { loadConfig } = require('./config');
 const { DiscordNotifier } = require('./discordBot');
 const { loadDotEnv } = require('./index');
@@ -16,7 +16,8 @@ async function runDoctor(options = {}) {
   loadDotEnv();
 
   const config = loadConfig();
-  console.log(`Loaded ${config.products.length} product(s).`);
+  console.log(`Loaded ${config.products.length} product restock watch(es).`);
+  console.log(`Loaded ${config.brandWatches.length} brand new-product watch(es).`);
   console.log(`Poll interval: ${config.pollIntervalMs}ms`);
 
   const notifier = new DiscordNotifier({
@@ -41,6 +42,15 @@ async function runDoctor(options = {}) {
       userAgent: config.userAgent
     });
     console.log(` -> ${result.inStock ? 'IN STOCK' : 'OUT OF STOCK'} | ${result.availabilityText}`);
+  }
+
+  for (const watch of config.brandWatches) {
+    console.log(`Checking brand listing: ${watch.name}`);
+    const listing = await fetchBrandListing(watch, {
+      timeoutMs: config.requestTimeoutMs,
+      userAgent: config.userAgent
+    });
+    console.log(` -> ${listing.items.length} item(s) parsed from listing`);
   }
 
   console.log('Doctor check finished successfully.');

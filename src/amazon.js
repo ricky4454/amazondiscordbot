@@ -58,27 +58,75 @@ function extractAvailability(html) {
   };
 }
 
+function extractListingProducts(html, maxItems = 30) {
+  const matches = [...html.matchAll(/<a[^>]+href=["']([^"']*(?:\/dp\/|\/gp\/product\/)[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi)];
+  const seen = new Set();
+  const products = [];
+
+  for (const match of matches) {
+    const href = match[1];
+    const anchorText = stripTags(match[2]);
+    const maybeUrl = href.startsWith('http') ? href : `https://www.amazon.com${href}`;
+
+    let normalizedUrl;
+    try {
+      normalizedUrl = normalizeAmazonUrl(maybeUrl);
+    } catch {
+      continue;
+    }
+
+    if (seen.has(normalizedUrl)) {
+      continue;
+    }
+
+    const asinMatch = normalizedUrl.match(/\/dp\/([A-Z0-9]{10})/i);
+    if (!asinMatch) {
+      continue;
+    }
+
+    seen.add(normalizedUrl);
+    products.push({
+      asin: asinMatch[1].toUpperCase(),
+      url: normalizedUrl,
+      title: anchorText || `Amazon product ${asinMatch[1].toUpperCase()}`
+    });
+
+    if (products.length >= maxItems) {
+      break;
+    }
+  }
+
+  return products;
+}
+
+async function fetchHtml(url, options) {
+  const response = await fetch(url, {
+    headers: {
+      'accept-language': 'en-US,en;q=0.9',
+      'cache-control': 'no-cache',
+      pragma: 'no-cache',
+      'user-agent': options.userAgent
+    },
+    signal: options.signal
+  });
+
+  if (!response.ok) {
+    throw new Error(`Amazon responded with ${response.status} ${response.statusText}`);
+  }
+
+  return response.text();
+}
+
 async function fetchProductAvailability(product, options) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), options.timeoutMs);
 
   try {
     const normalizedUrl = normalizeAmazonUrl(product.url);
-    const response = await fetch(normalizedUrl, {
-      headers: {
-        'accept-language': 'en-US,en;q=0.9',
-        'cache-control': 'no-cache',
-        pragma: 'no-cache',
-        'user-agent': options.userAgent
-      },
+    const html = await fetchHtml(normalizedUrl, {
+      userAgent: options.userAgent,
       signal: controller.signal
     });
-
-    if (!response.ok) {
-      throw new Error(`Amazon responded with ${response.status} ${response.statusText}`);
-    }
-
-    const html = await response.text();
     const parsed = extractAvailability(html);
 
     return {
@@ -102,9 +150,37 @@ async function fetchProductAvailability(product, options) {
   }
 }
 
+async function fetchBrandListing(brandWatch, options) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), options.timeoutMs);
+
+  try {
+    const html = await fetchHtml(brandWatch.url, {
+      userAgent: options.userAgent,
+      signal: controller.signal
+    });
+
+    return {
+      ...brandWatch,
+      checkedAt: new Date().toISOString(),
+      items: extractListingProducts(html, brandWatch.maxItems)
+    };
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error(`Brand listing request timed out after ${options.timeoutMs}ms`);
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 module.exports = {
   extractAvailability,
   extractFirstMatch,
+  extractListingProducts,
+  fetchBrandListing,
   fetchProductAvailability,
   normalizeAmazonUrl,
   normalizeWhitespace,
