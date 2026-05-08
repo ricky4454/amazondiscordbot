@@ -6,7 +6,7 @@ const { extractAvailability, extractListingProducts, normalizeAmazonUrl } = requ
 const { parseBrandWatches, parseProducts } = require('../src/config');
 const { shouldSkipAmazon } = require('../src/doctor');
 const { buildDiscordErrorMessage } = require('../src/discordBot');
-const { matchesKeywordFilter } = require('../src/index');
+const { matchesKeywordFilter, getProductAlertHeader } = require('../src/index');
 
 test('extractAvailability marks in-stock pages correctly', () => {
   const result = extractAvailability(`
@@ -118,4 +118,11 @@ test('matchesKeywordFilter matches when title contains keyword', () => {
 test('parseKeywords splits comma-separated keywords', () => {
   assert.deepEqual(parseKeywords('joker, figure,persona'), ['joker', 'figure', 'persona']);
   assert.deepEqual(parseKeywords(''), []);
+});
+
+
+test('getProductAlertHeader emits in-stock alerts and distinguishes restock', () => {
+  assert.equal(getProductAlertHeader(undefined, true), '✅ **IN STOCK 감지!**');
+  assert.equal(getProductAlertHeader(false, true), '🚨 **재입고 감지!**');
+  assert.equal(getProductAlertHeader(true, false), null);
 });

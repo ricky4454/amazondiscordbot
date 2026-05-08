@@ -2,15 +2,15 @@
 
 아마존 상품 페이지를 주기적으로 확인해서 다음 두 가지를 디스코드로 알림 보내는 봇입니다.
 
-1. **기존 상품 재입고** (품절 → 재입고 전환)
+1. **기존 상품 IN STOCK 상태 알림** (첫 감지/재입고 포함)
 2. **브랜드 신규 상품 등록** (브랜드/검색 페이지에 처음 보이는 ASIN 감지)
 
 ## 기능
 
-- 여러 Amazon 상품 URL 동시 재입고 감시
+- 여러 Amazon 상품 URL 동시 IN STOCK 감시
 - 여러 브랜드/검색 URL 동시 신규 상품 감시
 - 추적 파라미터가 붙은 Amazon URL을 `/dp/ASIN` 형태로 자동 정규화
-- Discord 텍스트 채널로 재입고/신규상품 알림 전송
+- Discord 텍스트 채널로 IN STOCK/신규상품 알림 전송
 - 시작 시 감시 대상/주기 안내 메시지 전송
 - Windows용 실행/설정 `.cmd` 스크립트 포함
 - 단위 테스트 포함
@@ -53,7 +53,7 @@ REQUEST_TIMEOUT_MS=15000
 USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36
 ```
 
-- `AMAZON_PRODUCTS_JSON`: 재입고 감시 목록
+- `AMAZON_PRODUCTS_JSON`: IN STOCK 감시 목록
 - `AMAZON_BRAND_WATCH_JSON`: 브랜드 신규상품 감시 목록
 - `maxItems`: listing 페이지에서 상위 몇 개까지 비교할지(기본 30)
 - `keywords`: 제목에 포함되어야 알림을 보내는 키워드 배열(비우면 신규상품 전체 알림)
@@ -81,7 +81,7 @@ npm run doctor -- --skip-amazon
 
 - `DISCORD_TOKEN`: Discord 봇 토큰
 - `DISCORD_CHANNEL_ID`: 알림을 받을 텍스트 채널 ID
-- `AMAZON_PRODUCTS_JSON`: 재입고 감시 상품 목록 JSON 배열 (필수)
+- `AMAZON_PRODUCTS_JSON`: IN STOCK 감시 상품 목록 JSON 배열 (필수)
 - `AMAZON_BRAND_WATCH_JSON`: 브랜드 신규상품 감시 목록 JSON 배열 (선택)
 - `POLL_INTERVAL_MS`: 확인 주기(ms), 기본값 `300000` (5분)
 - `REQUEST_TIMEOUT_MS`: Amazon 요청 타임아웃(ms), 기본값 `15000`
@@ -90,8 +90,8 @@ npm run doctor -- --skip-amazon
 ## 동작 방식
 
 1. 봇이 시작되면 Discord에 접속합니다.
-2. 시작 메시지로 재입고 감시 개수/브랜드 감시 개수를 표시합니다.
-3. 재입고 감시는 각 상품 URL의 상태를 확인합니다.
+2. 시작 메시지로 상품 감시 개수/브랜드 감시 개수를 표시합니다.
+3. 상품 감시는 각 상품 URL의 상태를 확인하고, IN STOCK일 때마다 알림을 보냅니다(품절→재입고는 재입고 알림).
 4. 브랜드 감시는 listing URL에서 ASIN 목록을 파싱합니다.
 5. 기존에 없던 ASIN 중에서 키워드 조건(`keywords`)에 맞는 항목만 신규상품 알림을 보냅니다.
 

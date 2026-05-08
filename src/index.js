@@ -33,6 +33,15 @@ function loadDotEnv() {
 }
 
 
+
+function getProductAlertHeader(previousInStock, inStock) {
+  if (!inStock) {
+    return null;
+  }
+
+  return previousInStock === false ? '🚨 **재입고 감지!**' : '✅ **IN STOCK 감지!**';
+}
+
 function matchesKeywordFilter(title, keywords) {
   if (!Array.isArray(keywords) || keywords.length === 0) {
     return true;
@@ -63,9 +72,10 @@ function createMonitor({ notifier, config, logger = console }) {
           `[${result.checkedAt}] ${result.name} => ${result.inStock ? 'IN STOCK' : 'OUT OF STOCK'} (${result.availabilityText})`
         );
 
-        if (previousInStock === false && result.inStock === true) {
+        const alertHeader = getProductAlertHeader(previousInStock, result.inStock);
+        if (alertHeader) {
           await notifier.sendMessage([
-            '🚨 **재입고 감지!**',
+            alertHeader,
             `상품: **${result.title || result.name}**`,
             `상태: ${result.availabilityText}`,
             `링크: ${result.url}`
@@ -187,5 +197,6 @@ module.exports = {
   createMonitor,
   loadDotEnv,
   main,
-  matchesKeywordFilter
+  matchesKeywordFilter,
+  getProductAlertHeader
 };
