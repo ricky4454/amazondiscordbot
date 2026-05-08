@@ -51,6 +51,15 @@ function matchesKeywordFilter(title, keywords) {
   return keywords.some((keyword) => normalizedTitle.includes(String(keyword).toLowerCase()));
 }
 
+
+function getBrandItemsToNotify({ existingAsins, items, keywords }) {
+  const sourceItems = existingAsins
+    ? items.filter((item) => !existingAsins.has(item.asin))
+    : items;
+
+  return sourceItems.filter((item) => matchesKeywordFilter(item.title, keywords));
+}
+
 function createMonitor({ notifier, config, logger = console }) {
   const previousProductState = new Map();
   const seenBrandAsins = new Map();
@@ -101,18 +110,16 @@ function createMonitor({ notifier, config, logger = console }) {
         const existing = seenBrandAsins.get(watch.url);
         const currentAsins = new Set(listing.items.map((item) => item.asin));
 
-        if (!existing) {
-          seenBrandAsins.set(watch.url, currentAsins);
-          continue;
-        }
-
-        const newlyDiscovered = listing.items.filter((item) => !existing.has(item.asin));
-        const matchedNewItems = newlyDiscovered.filter((item) => matchesKeywordFilter(item.title, watch.keywords));
+        const matchedItems = getBrandItemsToNotify({
+          existingAsins: existing,
+          items: listing.items,
+          keywords: watch.keywords
+        });
         seenBrandAsins.set(watch.url, currentAsins);
 
-        for (const item of matchedNewItems) {
+        for (const item of matchedItems) {
           await notifier.sendMessage([
-            '🆕 **브랜드 신규 상품 감지!**',
+            existing ? '🆕 **브랜드 신규 상품 감지!**' : '🔎 **키워드 매칭 상품 감지!**',
             `브랜드/감시명: **${watch.name}**`,
             watch.keywords.length > 0 ? `키워드 필터: ${watch.keywords.join(', ')}` : '키워드 필터: 없음',
             `상품: ${item.title}`,
@@ -198,5 +205,6 @@ module.exports = {
   loadDotEnv,
   main,
   matchesKeywordFilter,
-  getProductAlertHeader
+  getProductAlertHeader,
+  getBrandItemsToNotify
 };

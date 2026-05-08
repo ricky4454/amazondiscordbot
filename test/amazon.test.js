@@ -6,7 +6,7 @@ const { extractAvailability, extractListingProducts, normalizeAmazonUrl } = requ
 const { parseBrandWatches, parseProducts } = require('../src/config');
 const { shouldSkipAmazon } = require('../src/doctor');
 const { buildDiscordErrorMessage } = require('../src/discordBot');
-const { matchesKeywordFilter, getProductAlertHeader } = require('../src/index');
+const { matchesKeywordFilter, getProductAlertHeader, getBrandItemsToNotify } = require('../src/index');
 
 test('extractAvailability marks in-stock pages correctly', () => {
   const result = extractAvailability(`
@@ -125,4 +125,25 @@ test('getProductAlertHeader emits in-stock alerts and distinguishes restock', ()
   assert.equal(getProductAlertHeader(undefined, true), '✅ **IN STOCK 감지!**');
   assert.equal(getProductAlertHeader(false, true), '🚨 **재입고 감지!**');
   assert.equal(getProductAlertHeader(true, false), null);
+});
+
+
+test('getBrandItemsToNotify matches keywords from first baseline scan', () => {
+  const items = [
+    { asin: 'A1', title: 'Persona Joker Figure', url: 'https://www.amazon.com/dp/A1' },
+    { asin: 'A2', title: 'Random Item', url: 'https://www.amazon.com/dp/A2' }
+  ];
+
+  const result = getBrandItemsToNotify({ existingAsins: undefined, items, keywords: ['joker'] });
+  assert.deepEqual(result.map((item) => item.asin), ['A1']);
+});
+
+test('getBrandItemsToNotify limits to newly discovered items after baseline', () => {
+  const items = [
+    { asin: 'A1', title: 'Persona Joker Figure', url: 'https://www.amazon.com/dp/A1' },
+    { asin: 'A3', title: 'Persona Joker New Ver', url: 'https://www.amazon.com/dp/A3' }
+  ];
+
+  const result = getBrandItemsToNotify({ existingAsins: new Set(['A1']), items, keywords: ['joker'] });
+  assert.deepEqual(result.map((item) => item.asin), ['A3']);
 });
