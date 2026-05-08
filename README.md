@@ -101,3 +101,19 @@ npm run doctor -- --skip-amazon
 - `403 Forbidden`: 봇 권한(채널 보기/메시지 전송) 확인.
 - `404 Not Found`: `DISCORD_CHANNEL_ID` 확인.
 - 네트워크 제한 환경이면 `npm run doctor -- --skip-amazon`으로 Discord만 먼저 검증.
+
+
+## 추천 UX: 감시 항목 관리 CLI
+
+`.env`의 긴 JSON을 직접 수정하지 않고, 아래 명령으로 감시 항목을 관리할 수 있습니다.
+
+```bash
+npm run watch:list
+npm run watch:add:product -- "PS5 Slim" "https://www.amazon.com/dp/B0CL61F39H"
+npm run watch:add:brand -- "Bandai New Toys" "https://www.amazon.com/s?k=bandai&i=toys-and-games&s=date-desc-rank" "joker,figure" 30
+npm run watch:remove -- "https://www.amazon.com/dp/B0CL61F39H"
+```
+
+- 저장 파일: `watch-config.json` (기본)
+- 경로 변경: `WATCH_CONFIG_PATH` 환경변수 사용
+- `watch-config.json`이 있으면 해당 설정을 우선 사용

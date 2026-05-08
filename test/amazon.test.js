@@ -1,3 +1,4 @@
+const { parseKeywords } = require('../src/manageWatches');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
@@ -111,4 +112,10 @@ test('matchesKeywordFilter matches when title contains keyword', () => {
   assert.equal(matchesKeywordFilter('Persona 5 Joker Figure', ['joker', 'nendoroid']), true);
   assert.equal(matchesKeywordFilter('Persona 5 Joker Figure', ['lego']), false);
   assert.equal(matchesKeywordFilter('Anything', []), true);
+});
+
+
+test('parseKeywords splits comma-separated keywords', () => {
+  assert.deepEqual(parseKeywords('joker, figure,persona'), ['joker', 'figure', 'persona']);
+  assert.deepEqual(parseKeywords(''), []);
 });

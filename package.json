@@ -7,7 +7,11 @@
   "scripts": {
     "start": "node src/index.js",
     "doctor": "node src/doctor.js",
-    "test": "node --test"
+    "test": "node --test",
+    "watch:list": "node src/manageWatches.js list",
+    "watch:add:product": "node src/manageWatches.js add-product",
+    "watch:add:brand": "node src/manageWatches.js add-brand",
+    "watch:remove": "node src/manageWatches.js remove"
   },
   "engines": {
     "node": ">=20"
