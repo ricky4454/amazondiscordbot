@@ -61,6 +61,19 @@ test('extractListingProducts parses listing links and deduplicates ASINs', () =>
   assert.equal(items[0].url, 'https://www.amazon.com/dp/B0AAAAAA11');
 });
 
+test('extractListingProducts falls back to ASIN signals used in Amazon store pages', () => {
+  const items = extractListingProducts(`
+    <div data-item='{"asin":"B0CCCCCC33"}'>
+      <img alt="Persona 5 Joker Figure" src="x" />
+    </div>
+    <script>var foo = "\/dp\/B0DDDDDD44";</script>
+  `, 30);
+
+  assert.deepEqual(items.map((item) => item.asin), ['B0CCCCCC33', 'B0DDDDDD44']);
+  assert.equal(items[0].title, 'Persona 5 Joker Figure');
+  assert.equal(items[1].url, 'https://www.amazon.com/dp/B0DDDDDD44');
+});
+
 test('normalizeAmazonUrl strips query parameters down to canonical dp url', () => {
   assert.equal(
     normalizeAmazonUrl('https://www.amazon.com/dp/B0FY7XV4JY/?coliid=I1ICROY7VSIYFH&colid=468FUDFXB0QM&ref_=list_c_wl_lv_ov_lig_dp_it&th=1'),

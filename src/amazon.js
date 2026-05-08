@@ -60,6 +60,7 @@ function extractAvailability(html) {
 
 function extractListingProducts(html, maxItems = 30) {
   const matches = [...html.matchAll(/<a[^>]+href=["']([^"']*(?:\/dp\/|\/gp\/product\/)[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi)];
+  const asinSignals = [...html.matchAll(/(?:\/dp\/|\/gp\/product\/|"asin"\s*:\s*")([A-Z0-9]{10})/gi)];
   const seen = new Set();
   const products = [];
 
@@ -89,6 +90,35 @@ function extractListingProducts(html, maxItems = 30) {
       asin: asinMatch[1].toUpperCase(),
       url: normalizedUrl,
       title: anchorText || `Amazon product ${asinMatch[1].toUpperCase()}`
+    });
+
+    if (products.length >= maxItems) {
+      break;
+    }
+  }
+
+  for (const match of asinSignals) {
+    const asin = String(match[1] || '').toUpperCase();
+    if (!asin) {
+      continue;
+    }
+
+    const normalizedUrl = `https://www.amazon.com/dp/${asin}`;
+    if (seen.has(normalizedUrl)) {
+      continue;
+    }
+
+    const vicinity = html.slice(Math.max(0, match.index - 250), Math.min(html.length, match.index + 450));
+    const hintedTitle =
+      extractFirstMatch(vicinity, /aria-label=["']([\s\S]*?)["']/i) ||
+      extractFirstMatch(vicinity, /alt=["']([\s\S]*?)["']/i) ||
+      extractFirstMatch(vicinity, /title=["']([\s\S]*?)["']/i);
+
+    seen.add(normalizedUrl);
+    products.push({
+      asin,
+      url: normalizedUrl,
+      title: hintedTitle || `Amazon product ${asin}`
     });
 
     if (products.length >= maxItems) {
