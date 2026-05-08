@@ -138,12 +138,13 @@ test('getBrandItemsToNotify matches keywords from first baseline scan', () => {
   assert.deepEqual(result.map((item) => item.asin), ['A1']);
 });
 
-test('getBrandItemsToNotify limits to newly discovered items after baseline', () => {
+test('getBrandItemsToNotify includes existing and new items when keyword matches', () => {
   const items = [
     { asin: 'A1', title: 'Persona Joker Figure', url: 'https://www.amazon.com/dp/A1' },
-    { asin: 'A3', title: 'Persona Joker New Ver', url: 'https://www.amazon.com/dp/A3' }
+    { asin: 'A3', title: 'Persona Joker New Ver', url: 'https://www.amazon.com/dp/A3' },
+    { asin: 'A4', title: 'Another Product', url: 'https://www.amazon.com/dp/A4' }
   ];
 
-  const result = getBrandItemsToNotify({ existingAsins: new Set(['A1']), items, keywords: ['joker'] });
-  assert.deepEqual(result.map((item) => item.asin), ['A3']);
+  const result = getBrandItemsToNotify({ items, keywords: ['joker'] });
+  assert.deepEqual(result.map((item) => item.asin), ['A1', 'A3']);
 });

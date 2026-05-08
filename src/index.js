@@ -52,12 +52,8 @@ function matchesKeywordFilter(title, keywords) {
 }
 
 
-function getBrandItemsToNotify({ existingAsins, items, keywords }) {
-  const sourceItems = existingAsins
-    ? items.filter((item) => !existingAsins.has(item.asin))
-    : items;
-
-  return sourceItems.filter((item) => matchesKeywordFilter(item.title, keywords));
+function getBrandItemsToNotify({ items, keywords }) {
+  return items.filter((item) => matchesKeywordFilter(item.title, keywords));
 }
 
 function createMonitor({ notifier, config, logger = console }) {
@@ -119,7 +115,7 @@ function createMonitor({ notifier, config, logger = console }) {
 
         for (const item of matchedItems) {
           await notifier.sendMessage([
-            existing ? '🆕 **브랜드 신규 상품 감지!**' : '🔎 **키워드 매칭 상품 감지!**',
+            existing ? '🔎 **키워드 매칭 상품 감지!**' : '🔎 **키워드 매칭 상품 감지! (첫 스캔)**',
             `브랜드/감시명: **${watch.name}**`,
             watch.keywords.length > 0 ? `키워드 필터: ${watch.keywords.join(', ')}` : '키워드 필터: 없음',
             `상품: ${item.title}`,
