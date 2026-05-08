@@ -66,10 +66,15 @@ function parseBrandWatches(rawWatches) {
       throw new Error(`Brand watch at index ${index} has invalid maxItems.`);
     }
 
+    const keywords = Array.isArray(watch.keywords)
+      ? watch.keywords.map((keyword) => String(keyword).trim()).filter(Boolean)
+      : [];
+
     return {
       name: String(watch.name),
       url: String(watch.url),
-      maxItems
+      maxItems,
+      keywords
     };
   });
 }

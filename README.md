@@ -47,7 +47,7 @@ windows\setup-windows.cmd
 DISCORD_TOKEN=여기에_디스코드_봇_토큰
 DISCORD_CHANNEL_ID=123456789012345678
 AMAZON_PRODUCTS_JSON=[{"name":"PS5","url":"https://www.amazon.com/dp/B0CL61F39H"},{"name":"Nintendo Switch","url":"https://www.amazon.com/dp/B0BFJWCYTL"}]
-AMAZON_BRAND_WATCH_JSON=[{"name":"Bandai New Toys","url":"https://www.amazon.com/s?k=bandai&i=toys-and-games&s=date-desc-rank","maxItems":30},{"name":"LEGO New","url":"https://www.amazon.com/s?k=lego&i=toys-and-games&s=date-desc-rank","maxItems":20}]
+AMAZON_BRAND_WATCH_JSON=[{"name":"Bandai New Toys","url":"https://www.amazon.com/s?k=bandai&i=toys-and-games&s=date-desc-rank","maxItems":30,"keywords":["joker","persona","figure"]},{"name":"LEGO New","url":"https://www.amazon.com/s?k=lego&i=toys-and-games&s=date-desc-rank","maxItems":20,"keywords":["technic","star wars"]}]
 POLL_INTERVAL_MS=300000
 REQUEST_TIMEOUT_MS=15000
 USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36
@@ -56,6 +56,7 @@ USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, 
 - `AMAZON_PRODUCTS_JSON`: 재입고 감시 목록
 - `AMAZON_BRAND_WATCH_JSON`: 브랜드 신규상품 감시 목록
 - `maxItems`: listing 페이지에서 상위 몇 개까지 비교할지(기본 30)
+- `keywords`: 제목에 포함되어야 알림을 보내는 키워드 배열(비우면 신규상품 전체 알림)
 
 ### 5) 실행
 
@@ -92,7 +93,7 @@ npm run doctor -- --skip-amazon
 2. 시작 메시지로 재입고 감시 개수/브랜드 감시 개수를 표시합니다.
 3. 재입고 감시는 각 상품 URL의 상태를 확인합니다.
 4. 브랜드 감시는 listing URL에서 ASIN 목록을 파싱합니다.
-5. 기존에 없던 ASIN이 새로 나타나면 신규상품 알림을 보냅니다.
+5. 기존에 없던 ASIN 중에서 키워드 조건(`keywords`)에 맞는 항목만 신규상품 알림을 보냅니다.
 
 ## 문제 해결
 

@@ -5,6 +5,7 @@ const { extractAvailability, extractListingProducts, normalizeAmazonUrl } = requ
 const { parseBrandWatches, parseProducts } = require('../src/config');
 const { shouldSkipAmazon } = require('../src/doctor');
 const { buildDiscordErrorMessage } = require('../src/discordBot');
+const { matchesKeywordFilter } = require('../src/index');
 
 test('extractAvailability marks in-stock pages correctly', () => {
   const result = extractAvailability(`
@@ -77,8 +78,8 @@ test('parseBrandWatches supports empty and valid arrays', () => {
   assert.deepEqual(parseBrandWatches(undefined), []);
 
   assert.deepEqual(
-    parseBrandWatches('[{"name":"Bandai","url":"https://www.amazon.com/s?k=bandai","maxItems":20}]'),
-    [{ name: 'Bandai', url: 'https://www.amazon.com/s?k=bandai', maxItems: 20 }]
+    parseBrandWatches('[{"name":"Bandai","url":"https://www.amazon.com/s?k=bandai","maxItems":20,"keywords":["joker","figure"]}]'),
+    [{ name: 'Bandai', url: 'https://www.amazon.com/s?k=bandai', maxItems: 20, keywords: ['joker', 'figure'] }]
   );
 });
 
@@ -103,4 +104,11 @@ test('buildDiscordErrorMessage explains unauthorized token errors clearly', () =
 
   assert.match(message, /Check DISCORD_TOKEN/i);
   assert.match(message, /regenerate it/i);
+});
+
+
+test('matchesKeywordFilter matches when title contains keyword', () => {
+  assert.equal(matchesKeywordFilter('Persona 5 Joker Figure', ['joker', 'nendoroid']), true);
+  assert.equal(matchesKeywordFilter('Persona 5 Joker Figure', ['lego']), false);
+  assert.equal(matchesKeywordFilter('Anything', []), true);
 });

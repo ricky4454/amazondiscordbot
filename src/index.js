@@ -32,6 +32,16 @@ function loadDotEnv() {
   }
 }
 
+
+function matchesKeywordFilter(title, keywords) {
+  if (!Array.isArray(keywords) || keywords.length === 0) {
+    return true;
+  }
+
+  const normalizedTitle = String(title || '').toLowerCase();
+  return keywords.some((keyword) => normalizedTitle.includes(String(keyword).toLowerCase()));
+}
+
 function createMonitor({ notifier, config, logger = console }) {
   const previousProductState = new Map();
   const seenBrandAsins = new Map();
@@ -87,12 +97,14 @@ function createMonitor({ notifier, config, logger = console }) {
         }
 
         const newlyDiscovered = listing.items.filter((item) => !existing.has(item.asin));
+        const matchedNewItems = newlyDiscovered.filter((item) => matchesKeywordFilter(item.title, watch.keywords));
         seenBrandAsins.set(watch.url, currentAsins);
 
-        for (const item of newlyDiscovered) {
+        for (const item of matchedNewItems) {
           await notifier.sendMessage([
             '🆕 **브랜드 신규 상품 감지!**',
             `브랜드/감시명: **${watch.name}**`,
+            watch.keywords.length > 0 ? `키워드 필터: ${watch.keywords.join(', ')}` : '키워드 필터: 없음',
             `상품: ${item.title}`,
             `링크: ${item.url}`
           ].join('\n'));
@@ -174,5 +186,6 @@ if (require.main === module) {
 module.exports = {
   createMonitor,
   loadDotEnv,
-  main
+  main,
+  matchesKeywordFilter
 };
