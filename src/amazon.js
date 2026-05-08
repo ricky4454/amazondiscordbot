@@ -58,7 +58,8 @@ function extractAvailability(html) {
   };
 }
 
-function extractListingProducts(html, maxItems = 30) {
+function extractListingProducts(html, maxItems = null) {
+  const limit = Number.isFinite(maxItems) && maxItems > 0 ? maxItems : Number.POSITIVE_INFINITY;
   const matches = [...html.matchAll(/<a[^>]+href=["']([^"']*(?:\/dp\/|\/gp\/product\/)[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi)];
   const asinSignals = [...html.matchAll(/(?:\/dp\/|\/gp\/product\/|"asin"\s*:\s*")([A-Z0-9]{10})/gi)];
   const seen = new Set();
@@ -92,7 +93,7 @@ function extractListingProducts(html, maxItems = 30) {
       title: anchorText || `Amazon product ${asinMatch[1].toUpperCase()}`
     });
 
-    if (products.length >= maxItems) {
+    if (products.length >= limit) {
       break;
     }
   }
@@ -121,7 +122,7 @@ function extractListingProducts(html, maxItems = 30) {
       title: hintedTitle || `Amazon product ${asin}`
     });
 
-    if (products.length >= maxItems) {
+    if (products.length >= limit) {
       break;
     }
   }

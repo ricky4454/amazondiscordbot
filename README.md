@@ -55,7 +55,7 @@ USER_AGENT=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, 
 
 - `AMAZON_PRODUCTS_JSON`: IN STOCK 감시 목록
 - `AMAZON_BRAND_WATCH_JSON`: 브랜드 신규상품 감시 목록
-- `maxItems`: listing 페이지에서 상위 몇 개까지 비교할지(기본 30)
+- `maxItems`: listing 페이지에서 상위 몇 개까지 비교할지(생략 시 페이지에서 찾은 매칭 후보 전체)
 - `keywords`: 제목에 포함되어야 알림을 보내는 키워드 배열(비우면 신규상품 전체 알림)
 
 ### 5) 실행

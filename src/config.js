@@ -3,7 +3,7 @@ const { loadWatchConfig, resolveConfigPath } = require('./watchConfig');
 
 const DEFAULT_POLL_INTERVAL_MS = 5 * 60 * 1000;
 const DEFAULT_REQUEST_TIMEOUT_MS = 15 * 1000;
-const DEFAULT_BRAND_MAX_ITEMS = 30;
+const DEFAULT_BRAND_MAX_ITEMS = Number.POSITIVE_INFINITY;
 
 function parseProducts(rawProducts) {
   if (!rawProducts) {
@@ -74,7 +74,7 @@ function parseBrandWatches(rawWatches) {
     return {
       name: String(watch.name),
       url: String(watch.url),
-      maxItems,
+      maxItems: Number.isFinite(maxItems) ? maxItems : null,
       keywords
     };
   });

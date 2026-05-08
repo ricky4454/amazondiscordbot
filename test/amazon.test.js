@@ -95,6 +95,11 @@ test('parseBrandWatches supports empty and valid arrays', () => {
     parseBrandWatches('[{"name":"Bandai","url":"https://www.amazon.com/s?k=bandai","maxItems":20,"keywords":["joker","figure"]}]'),
     [{ name: 'Bandai', url: 'https://www.amazon.com/s?k=bandai', maxItems: 20, keywords: ['joker', 'figure'] }]
   );
+
+  assert.deepEqual(
+    parseBrandWatches('[{"name":"Bandai All","url":"https://www.amazon.com/s?k=bandai"}]'),
+    [{ name: 'Bandai All', url: 'https://www.amazon.com/s?k=bandai', maxItems: null, keywords: [] }]
+  );
 });
 
 test('parseProducts rejects invalid JSON payloads', () => {
